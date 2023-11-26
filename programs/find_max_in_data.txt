@@ -1,0 +1,12 @@
+set [10, 3, 2, 4, 8, 15, 2, 0, 1, 5, 3]
+mov r0, d0
+mov r2, [r0]
+sub r0, 1
+point_start: mov r3, [r0]
+cmp r2, r3
+jns jump
+mov r2, r3
+jump: sub r0, 1
+cmp r0 0
+jne point_start
+mov r1, r2
