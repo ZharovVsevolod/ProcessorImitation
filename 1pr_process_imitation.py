@@ -39,7 +39,7 @@ comands = [
 ]
 
 
-process = ProcessorImitation(4, DATA, comand_memory=comands)
+process = ProcessorImitation(4, DATA, command_memory=comands)
 
 
 process.command_loop()

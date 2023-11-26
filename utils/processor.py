@@ -1,37 +1,58 @@
 class ProcessorImitation():
     """Класс для реализации модели процессорного ядра программно-аппаратного комплекса
+
     Parameters
     ----------
-    register_size : int
+    `register_size` : int
         Количество регистров, которые могут использоваться в представителе класса
+
+    `data_memory` : list[int] | int = 4
+        Память данных. В формате list[int] кидается массив, который является необходимыми данными, либо в формате int указывается просто размерность памяти данных, которая инициируется нулями
+
+    `command_memory` : list[int] = None
+        Память команд. При наличии сразу при создании класа инициирует внутреннюю память команд. Может проиницировать позже с помощью метода `set_command`
     
     Attributes
     ----------
-    REG : list[int]
+    `REG` : list[int]
         Регистры, которые хранят данные
-    CMEM : list[int]
+
+    `CMEM` : list[int]
         Память команд
-    pc : int
+
+    `DMEM` : lsit[int]
+        Память данных
+
+    `pc` : int
         Счётчик команд
+
+    `sf` : int
+        Флаг знака результата операции (после сложения или вычитания)
+
+    `zf` : int
+        Флаг нулевого результата операции (после сложения или вычитания)
     
     Methods
     ----------
-    set_command(cmd : int | list[int])
+    `set_command`(`cmd` : int | list[int])
         Помещение команды в память команд
     
-    delimeter_command(cmd : int)
+    `delimeter_command`(`cmd` : int)
         Функция для разделения входной закодированной команды
     
-    command_loop(need_print : bool = True):
+    `command_loop`(`need_print` : bool = True):
         Функция для последовательного применения команд
     
-    clean_cmem( : )
+    `print_command`(`cmdtype` : int, `operand_1` : int, `operand_2` : int, `literal` : int):
+        Внутренняя функция, для подробного вывода процесса применения команд
+    
+    `clean_cmem`( : )
         Сбрасывает все команды
     
-    clean_reg( : )
+    `clean_reg`( : )
         Сбрасывает значения регистров в ноль
     """
-    def __init__(self, register_size:int, data_memory:list[int]|int=4, comand_memory = None) -> None:
+    def __init__(self, register_size:int, data_memory:list[int]|int=4, command_memory = None) -> None:
         self.REG = []
         for _ in range(register_size):
             self.REG.append(0)
@@ -42,10 +63,10 @@ class ProcessorImitation():
                 self.DMEM.append(0)
         else:
             self.DMEM = data_memory
-        if comand_memory is None:
+        if command_memory is None:
             self.CMEM = []
         else:
-            self.CMEM = comand_memory
+            self.CMEM = command_memory
         
         print(self.DMEM)
 
@@ -58,21 +79,23 @@ class ProcessorImitation():
     
     def set_command(self, cmd:int | list[int]) -> None:
         """Помещение команды в память команд
+
         Parameters
         ----------
-        cmd : int | list[int]
+        `cmd` : int | list[int]
             Команда, поступившая на вход. Может быть как одним значением, так и массивом сразу нескольких команд  
+
             В двочином виде она выглядит примерно следующим образом:  
-            CCCCLLLLLLLLDDDDXXXXYYYY,  
-            где CCCC - это тип команды (cmdtype);  
-                LLLLLLLL - literal, используется, если необходимо взять конретное значение не из памяти регистров;  
-                DDDD - номер регистра, в который надо записать результат (dest);  
-                XXXX - номер регистра, где лежит значение первого операнда (op1);  
-                YYYY - номер регистра, где лежит значение второго операнда (op2).  
+            CCCCLLLLLLLLDDDDXXXXYYYY, где 
+            - CCCC - это тип команды (cmdtype);  
+            - LLLLLLLL - literal, используется, если необходимо взять конретное значение не из памяти регистров;  
+            - DDDD - номер регистра, в который надо записать результат (dest);  
+            - XXXX - номер регистра, где лежит значение первого операнда (op1);  
+            - YYYY - номер регистра, где лежит значение второго операнда (op2).  
         
         Raises
         ----------
-        TypeError
+        `TypeError`
             Если cmd не является int или list[int]
         """
         if type(cmd) == int:
@@ -88,38 +111,45 @@ class ProcessorImitation():
     
     def delimeter_command(self, cmd:int) -> int:
         """Функция для разделения входной закодированной команды
+
         Parameters
         ----------
-        cmd : int
-            Команда, поступившая на вход. В двочином виде она выглядит примерно следующим образом:
-            CCCCLLLLLLLLDDDDXXXXYYYY,  
-            где CCCC - это тип команды (cmdtype);  
-                LLLLLLLL - literal, используется, если необходимо взять конретное значение не из памяти регистров;  
-                DDDD - номер регистра, в который надо записать результат (dest);  
-                XXXX - номер регистра, где лежит значение первого операнда (op1);  
-                YYYY - номер регистра, где лежит значение второго операнда (op2).  
+        `cmd` : int | list[int]
+            Команда, поступившая на вход. Может быть как одним значением, так и массивом сразу нескольких команд  
+
+            В двочином виде она выглядит примерно следующим образом:  
+            CCCCLLLLLLLLDDDDXXXXYYYY, где 
+            - CCCC - это тип команды (cmdtype);  
+            - LLLLLLLL - literal, используется, если необходимо взять конретное значение не из памяти регистров;  
+            - DDDD - номер регистра, в который надо записать результат (dest);  
+            - XXXX - номер регистра, где лежит значение первого операнда (op1);  
+            - YYYY - номер регистра, где лежит значение второго операнда (op2).  
         
         Returns
         ----------
-        cmdtype : int
+        `cmdtype` : int
             Тип команды
-        literal : int
+
+        `literal` : int
             Конкретное значение числа не из памяти регистров
-        dest : int
+
+        `dest` : int
             Номер регистра, в который надо записать результат
-        op1 : int
+
+        `op1` : int
             Номер регистра, где лежит значение первого операнда
-        op2 : int
+
+        `op2` : int
             Номер регистра, где лежит значение второго операнда
         
         Raises
         ----------
-        ValueError
-            Если cmd не соответсвует требованиям. Она должна иметь вид CCCC00000000DDDDXXXXYYYY в побитовом виде
+        `ValueError`
+            Если cmd не соответсвует требованиям. Она должна иметь вид CCCCLLLLLLLLDDDDXXXXYYYY в побитовом виде
         """
         # Проверка
         if cmd > 0xFFFFFFFF:
-            raise ValueError("Команда не соответсвует требованиям. Она должна иметь вид CCCC00000000DDDDXXXXYYYY", "{0:032b}".format(cmd))
+            raise ValueError("Команда не соответсвует требованиям. Она должна иметь вид CCCCLLLLLLLLDDDDXXXXYYYY", "{0:032b}".format(cmd))
 
         operand_2 = cmd & 15
         operand_1 = (cmd >> 4) & 15
@@ -131,11 +161,11 @@ class ProcessorImitation():
     
     def command_loop(self, need_print:bool = True) -> None:
         """Функция для последовательного применения команд
+
         Parameters
         ----------
-        need_print : bool = True
-            Необходим ли после каждой команды вывод подобного описания команды и результат её выполнения (значения регистров). 
-            По умолчанию True
+        `need_print` : bool = True
+            Необходим ли после каждой команды вывод подобного описания команды и результат её выполнения (значения регистров).
         """
         N = len(self.CMEM)
         self.pc = 0
@@ -151,6 +181,25 @@ class ProcessorImitation():
                 print()
     
     def set_flags(self, result:int):
+        """Функция для установки внутренних флагов zf и sf после арифметических операций
+
+        Если результат = 0, то
+        - zf = 1
+        - sf = 0
+        
+        Если результат > 0, то
+        - zf = 0
+        - sf = 0
+        
+        Если результат < 0, то
+        - zf = 0
+        - sf = 1
+
+        Parameters
+        ----------
+        `result` : int
+            Результат выполнения арифметической команды
+        """
         if result == 0:
             self.zf = 1
             self.sf = 0
@@ -162,6 +211,29 @@ class ProcessorImitation():
             self.sf = 1
     
     def command(self, cmdtype:int, operand_1:int, operand_2:int, literal:int) -> None:
+        """Функция для обработки и применения команды
+        
+        Изменяет внутренние параметры (регистры `REG`, память данных `DMEM`, счётчик команд `pc`) в соответствии с типом команды и атрибутами
+
+        Parameters
+        ----------
+        `cmdtype` : int
+            Тип команды
+
+        `operand_1` : int
+            Номер регистра, где лежит значение первого операнда
+
+        `operand_2` : int
+            Номер регистра, где лежит значение второго операнда
+        
+        `literal` : int
+            Конкретное значение числа не из памяти регистров
+
+        Примечание
+        ----------
+        `dest` не используется, т.к. в двухадресных командах результат записывается в ячейку первого операнда `operand_1`
+
+        """
         match cmdtype:
             case 0: # MOV, перемещение данных из одного регистра в другой
                 self.REG[operand_1] = self.REG[operand_2]
@@ -210,6 +282,22 @@ class ProcessorImitation():
         self.pc += 1
     
     def print_command(self, cmdtype:int, operand_1:int, operand_2:int, literal:int) -> None:
+        """Внутренняя функция, для подробного вывода процесса применения команд
+
+        Parameters
+        ----------
+        `cmdtype` : int
+            Тип команды
+
+        `operand_1` : int
+            Номер регистра, где лежит значение первого операнда
+
+        `operand_2` : int
+            Номер регистра, где лежит значение второго операнда
+        
+        `literal` : int
+            Конкретное значение числа не из памяти регистров
+        """
         match cmdtype:
             case 0: # MOV, перемещение данных из одного регистра в другой
                 print(f"MOV, REG[{operand_1}] <- REG[{operand_2}]")
@@ -245,79 +333,6 @@ class ProcessorImitation():
                 print(f"JE прыжок при ZF = 1 в команду {literal}")
             case _:
                 raise ValueError("Неизвестная команда")
-        
-
-    def command_old(self, cmdtype:int, operand_1:int, operand_2:int, destination:int, literal:int) -> None:
-        """Выбор и выполнение команды  
-        Данная команда записывает в нужный регистр результат выполнения команды и обновляет счётчик команд pc
-        Parameters
-        ----------
-        cmdtype : int
-            Тип команды. Допускаются следующие значения:  
-                0 - сложение;  
-                1 - вычитание;  
-                2 - побитовое И;  
-                3 - побитовое ИЛИ;  
-                4 - побитовое НЕ;  
-                5 - битовый сдвиг на один шаг вправо;  
-                6 - битовый сдвиг на один шаг влево;  
-                7 - возведение в степень;  
-                8 - поиск максимума;  
-                9 - возвращение значения literal;  
-                10 - безусловный переход jump через literal;  
-                11 - условный переход при op1 == op2;  
-                12 - условный переход при op1 != op2.  
-        
-        operand_1 : int
-            Номер регистра, в котором лежит значение первого операнда
-        
-        operand_2 : int
-            Номер регистра, в котором лежит значение второго операнда
-        
-        destination : int
-            Номер регистра, в который необходимо записать получившееся значение
-
-        literal : int
-            Дополнительный операнд  
-        
-        Raises
-        ----------
-        ValueError
-            Если значение cmdtype не будет принадлежать одному из перечисленных значений
-        """
-        op1 = self.REG[operand_1]
-        op2 = self.REG[operand_2]
-
-        match cmdtype:
-            case 0:
-                self.REG[destination] = op1 + op2
-            case 1:
-                self.REG[destination] = op1 - op2
-            case 2:
-                self.REG[destination] = op1 & op2
-            case 3:
-                self.REG[destination] = op1 | op2
-            case 4:
-                self.REG[destination] = ~op1
-            case 5:
-                self.REG[destination] = op1 >> 1
-            case 6:
-                self.REG[destination] = op1 << 1
-            case 7:
-                self.REG[destination] = op1 ^ op2
-            case 8:
-                self.REG[destination] = op1 if op1 > op2 else op2
-            case 9:
-                self.REG[destination] = literal
-            case 10:
-                self.pc = literal - 1
-            case 11:
-                self.pc = literal - 1 if op1 == op2 else self.pc
-            case 12:
-                self.pc = literal - 1 if op1 != op2 else self.pc
-            case _:
-                raise ValueError("Неизвестная команда")
-        self.pc += 1
     
     def clean_cmem(self) -> bool:
         """Сбрасывает все команды"""
@@ -337,133 +352,3 @@ class ProcessorImitation():
             "\nПамять флагов:\nSF = ", str(self.sf), ", ZF = ", str(self.zf), 
             "\nСчётчик команд PC = ", str(self.pc)
         ])
-
-def delimer_command(cmd:int) -> int:
-    """Функция для разделения входной закодированной команды
-    Parameters
-    ----------
-    cmd : int
-        Команда, поступившая на вход. В двочином виде она выглядит примерно следующим образом:
-        CCCCLLLLLLLLDDDDXXXXYYYY,  
-        где CCCC - это тип команды (cmdtype);  
-            LLLLLLLL - literal, используется, если необходимо взять конретное значение не из памяти регистров;  
-            DDDD - номер регистра, в который надо записать результат (dest);  
-            XXXX - номер регистра, где лежит значение первого операнда (op1);  
-            YYYY - номер регистра, где лежит значение второго операнда (op2).  
-    
-    Returns
-    ----------
-    cmdtype : int
-        Тип команды
-    literal : int
-        Конкретное значение числа не из памяти регистров
-    dest : int
-        Номер регистра, в который надо записать результат
-    op1 : int
-        Номер регистра, где лежит значение первого операнда
-    op2 : int
-        Номер регистра, где лежит значение второго операнда
-    
-    Raises
-    ----------
-    ValueError
-        Если cmd не соответсвует требованиям. Она должна иметь вид CCCC00000000DDDDXXXXYYYY в побитовом виде
-    """
-    # Проверка
-    if cmd > 0xFFFFFFFF:
-        raise ValueError("Команда не соответсвует требованиям. Она должна иметь вид CCCC00000000DDDDXXXXYYYY", "{0:032b}".format(cmd))
-
-    op2 = cmd & 15
-    op1 = (cmd >> 4) & 15
-    dest = (cmd >> 8) & 15
-    literal = (cmd >> 12) & 31
-    cmdtype = (cmd >> 28) & 15
-
-    return cmdtype, literal, dest, op1, op2
-
-def command_type_description(cmdtype:int) -> str:
-    """Возвращение типа команды
-    Parameters
-    ----------
-    cmdtype : int
-        Тип команды. Допускаются следующие значения:  
-            0 - сложение;  
-            1 - вычитание;  
-            2 - побитовое И;  
-            3 - побитовое ИЛИ;  
-            4 - побитовое НЕ;  
-            5 - битовый сдвиг на один шаг вправо;  
-            6 - битовый сдвиг на один шаг влево;  
-            7 - возведение в степень;  
-            8 - поиск максимума;  
-            9 - возвращение значения literal;  
-            10 - безусловный переход jump через literal;  
-            11 - условный переход при op1 == op2;  
-            12 - условный переход при op1 != op2.  
-    
-    Returns
-    ----------
-    str
-        Тип команды
-    
-    Raises
-    ----------
-    ValueError
-        Если значение cmdtype не будет принадлежать одному из перечисленных значений
-    """
-    match cmdtype:
-        case 0:
-            return "сложение"
-        case 1:
-            return "вычитание"
-        case 2:
-            return "побитовое И"
-        case 3:
-            return "побитовое ИЛИ"
-        case 4:
-            return "побитовое НЕ"
-        case 5:
-            return "битовый сдвиг на один шаг вправо"
-        case 6:
-            return "битовый сдвиг на один шаг влево"
-        case 7:
-            return "возведение в степень"
-        case 8:
-            return "поиск максимума"
-        case 9:
-            return "указание literal значения"
-        case 10:
-            return "безусловный переход jump через literal"
-        case 11:
-            return "условный переход при op1 == op2"
-        case 12:
-            return "условный переход при op1 != op2"
-        case _:
-            raise ValueError("Неизвестная команда") 
-
-def print_command(cmd:int) -> None:
-    """Вывод команды с разделением на части
-    Parameters
-    ----------
-    cmd : int
-        Команда, поступившая на вход. В двочином виде она выглядит примерно следующим образом:
-        CCCC00000000DDDDXXXXYYYY,  
-        где CCCC - это тип команды (cmdtype),  
-            DDDD - номер регистра, в который надо записать результат (dest),  
-            XXXX - номер регистра, где лежит значение первого операнда (op1),  
-            YYYY - номер регистра, где лежит значение второго операнда (op2).  
-        Нулями указаны разряды, которые в данной работе не используются (их значение будет записано в переменную literal)
-    
-    Raises
-    ----------
-    ValueError
-        Если cmd не соответсвует требованиям. Она должна иметь вид CCCC00000000DDDDXXXXYYYY в побитовом виде
-    ValueError
-        Если значение cmdtype не будет принадлежать одному из возможных значений
-    """
-    cmdtype, literal, dest, op1, op2 = delimer_command(cmd)
-    print(f"cmdtype = {cmdtype}, {command_type_description(cmdtype)}")
-    print(f"literal = {literal}")
-    print(f"dest = {dest}")
-    print(f"op1 = {op1}")
-    print(f"op2 = {op2}")
