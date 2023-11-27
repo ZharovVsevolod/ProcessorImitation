@@ -40,10 +40,16 @@ class ProcessorImitation():
     `delimeter_command`(`cmd` : int)
         Функция для разделения входной закодированной команды
     
-    `command_loop`(`need_print` : bool = True):
+    `command_loop`(`need_print` : bool = True)
         Функция для последовательного применения команд
     
-    `print_command`(`cmdtype` : int, `operand_1` : int, `operand_2` : int, `literal` : int):
+    `set_flags`(`result` : int)
+        Функция для установки внутренних флагов zf и sf после арифметических операций
+    
+    `command`(`cmdtype` : int, `operand_1` : int, `operand_2` : int, `literal` : int)
+        Функция для обработки и применения команды
+    
+    `print_command`(`cmdtype` : int, `operand_1` : int, `operand_2` : int, `literal` : int)
         Внутренняя функция, для подробного вывода процесса применения команд
     
     `clean_cmem`( : )
@@ -180,7 +186,7 @@ class ProcessorImitation():
                 print(self)
                 print()
     
-    def set_flags(self, result:int):
+    def set_flags(self, result:int) -> None:
         """Функция для установки внутренних флагов zf и sf после арифметических операций
 
         Если результат = 0, то
