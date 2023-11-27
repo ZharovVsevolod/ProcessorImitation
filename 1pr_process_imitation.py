@@ -1,7 +1,7 @@
 from utils.processor import ProcessorImitation
 
 DATA = [1, 2, 3, 4]
-comands = [
+commands = [
         # Заполнение памяти регистров значениями
         0x20000000, # 0 MOV from data memory
         0x20000010, # 1 MOV from data memory
@@ -38,8 +38,5 @@ comands = [
         0x00000012, # 26 MOV (op2 = max) (1A)
 ]
 
-
-process = ProcessorImitation(4, DATA, command_memory=comands)
-
-
+process = ProcessorImitation(4, DATA, command_memory=commands)
 process.command_loop()
